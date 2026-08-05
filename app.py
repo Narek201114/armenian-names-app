@@ -46,13 +46,13 @@ def index():
                             })
                             found = True
             
-            # 2. Եթե բազայում չկա, հարցնում ենք Gemini AI-ին անմիջապես ցուցադրելու համար
+            # 2. Եթե բազայում չկա, հարցնում ենք Gemini AI-ին
             if not found:
                 try:
                     prompt = f"Տուր հայկական «{search_query}» անվան նշանակությունը և սեռը (արական թե իգական)։ Պատասխանը տուր խիստ JSON ձևաչափով հետևյալ կառուցվածքով՝ {{\"name\": \"{search_query}\", \"meaning\": \"նշանակությունը այստեղ\", \"gender\": \"male կամ female\"}}"
                     
                     response = client.models.generate_content(
-                        model='gemini-2.5-flash',
+                        model='gemini-2.5',
                         contents=prompt,
                     )
                     
@@ -75,7 +75,7 @@ def index():
                         "letter": first_letter
                     })
                 except Exception as e:
-                    print(f"AI Error: {e}") # Կարող եք տեսնել սխալը Logs-ում
+                    print(f"AI Error: {e}")
         else:
             selected_letter = request.form.get("letter", "Ա")
             if selected_letter in NAMES_DATABASE:
