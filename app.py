@@ -52,7 +52,7 @@ def index():
                     prompt = f"Տուր հայկական «{search_query}» անվան նշանակությունը և սեռը (արական թե իգական)։ Պատասխանը տուր խիստ JSON ձևաչափով հետևյալ կառուցվածքով՝ {{\"name\": \"{search_query}\", \"meaning\": \"նշանակությունը այստեղ\", \"gender\": \"male կամ female\"}}"
                     
                     response = client.models.generate_content(
-                        model='gemini-2.5',
+                        model='gemini-2.0-flash',
                         contents=prompt,
                     )
                     
