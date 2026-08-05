@@ -28,24 +28,12 @@
             margin: 20px 0;
         }
         .search-input {
-            width: 60%;
+            width: 80%;
             padding: 12px;
             font-size: 16px;
             border: 1px solid #bdc3c7;
-            border-radius: 6px 0 0 6px;
+            border-radius: 6px;
             outline: none;
-        }
-        .search-btn {
-            padding: 12px 20px;
-            font-size: 16px;
-            background-color: #27ae60;
-            color: white;
-            border: 1px solid #27ae60;
-            border-radius: 0 6px 6px 0;
-            cursor: pointer;
-        }
-        .search-btn:hover {
-            background-color: #219653;
         }
         .alphabet-box {
             display: flex;
@@ -84,14 +72,6 @@
         .column.female {
             border-top-color: #e74c3c;
         }
-        .full-width-column {
-            width: 100%;
-            background: #fafafa;
-            padding: 20px;
-            border-radius: 8px;
-            border-top: 4px solid #27ae60;
-            margin-top: 30px;
-        }
         h2 {
             font-size: 20px;
             margin-top: 0;
@@ -123,82 +103,78 @@
     <div class="container">
         <h1>Հայկական Անունների Շտեմարան</h1>
         
-        <!-- Որոնման հատված -->
+        <!-- Որոնման հատված (Ակնթարթային) -->
         <div class="search-box">
-            <form method="POST">
-                <input type="text" name="search_query" class="search-input" placeholder="Որոնել անուն (օրինակ՝ Արամ, Անի)..." value="{{ search_query }}">
-                <button type="submit" class="search-btn">Որոնել</button>
-            </form>
+            <input type="text" id="searchInput" class="search-input" placeholder="Մուտքագրեք անունը որոնելու համար...">
         </div>
 
-        <p style="text-align: center; color: #666;">Կամ ընտրեք տառը ըստ այբուբենի․</p>
-        
         <!-- Այբուբենի կոճակներ -->
         <form method="POST" id="letterForm">
             <div class="alphabet-box">
                 {% for letter in alphabet %}
                     <button type="submit" name="letter" value="{{ letter }}" 
-                            class="letter-btn {% if letter == selected_letter and not search_query %}active{% endif %}">
+                            class="letter-btn {% if letter == selected_letter %}active{% endif %}">
                         {{ letter }}
                     </button>
                 {% endfor %}
             </div>
         </form>
 
-        <!-- Եթե որոնման արդյունք կա -->
-        {% if search_query %}
-            <div class="full-width-column">
-                <h2>«{{ search_query }}» որոնման արդյունքները</h2>
-                {% if search_results %}
-                    <ul>
-                        {% for item in search_results %}
-                            <li>
-                                <span class="name-title">{{ item.name }}</span> 
-                                (<span style="color: #2980b9; font-size: 13px;">{{ item.gender }}</span>, տառ՝ {{ item.letter }}) — 
+        <!-- Արդյունքների ցուցադրում -->
+        <div class="results-section" id="resultsSection">
+            <!-- Արական անուններ -->
+            <div class="column">
+                <h2>Արական անուններ («{{ selected_letter }}»)</h2>
+                {% if data.male %}
+                    <ul id="maleList">
+                        {% for item in data.male %}
+                            <li class="name-item">
+                                <span class="name-title">{{ item.name }}</span> — 
                                 <span class="name-meaning">{{ item.meaning }}</span>
                             </li>
                         {% endfor %}
                     </ul>
                 {% else %}
-                    <p class="no-data">Ոչինչ չի գտնվել «{{ search_query }}» անվան համար։</p>
+                    <p class="no-data">Տվյալ տառով արական անուններ դեռևս ավելացված չեն։</p>
                 {% endif %}
             </div>
-        {% else %}
-            <!-- Սովորական ցուցադրում ըստ տառերի -->
-            <div class="results-section">
-                <div class="column">
-                    <h2>Արական անուններ («{{ selected_letter }}»)</h2>
-                    {% if data.male %}
-                        <ul>
-                            {% for item in data.male %}
-                                <li>
-                                    <span class="name-title">{{ item.name }}</span> — 
-                                    <span class="name-meaning">{{ item.meaning }}</span>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="no-data">Տվյալ տառով արական անուններ դեռևս ավելացված չեն։</p>
-                    {% endif %}
-                </div>
 
-                <div class="column female">
-                    <h2>Իգական անուններ («{{ selected_letter }}»)</h2>
-                    {% if data.female %}
-                        <ul>
-                            {% for item in data.female %}
-                                <li>
-                                    <span class="name-title">{{ item.name }}</span> — 
-                                    <span class="name-meaning">{{ item.meaning }}</span>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="no-data">Տվյալ տառով իգական անուններ դեռևս ավելացված չեն։</p>
-                    {% endif %}
-                </div>
+            <!-- Իգական անուններ -->
+            <div class="column female">
+                <h2>Իգական անուններ («{{ selected_letter }}»)</h2>
+                {% if data.female %}
+                    <ul id="femaleList">
+                        {% for item in data.female %}
+                            <li class="name-item">
+                                <span class="name-title">{{ item.name }}</span> — 
+                                <span class="name-meaning">{{ item.meaning }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="no-data">Տվյալ տառով իգական անուններ դեռևս ավելացված չեն։</p>
+                {% endif %}
             </div>
-        {% endif %}
+        </div>
     </div>
+
+    <!-- JavaScript՝ ակնթարթային որոնման համար -->
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        
+        searchInput.addEventListener('input', function() {
+            const filter = searchInput.value.toLowerCase().trim();
+            const items = document.querySelectorAll('.name-item');
+
+            items.forEach(item => {
+                const nameText = item.querySelector('.name-title').textContent.toLowerCase();
+                if (nameText.includes(filter)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    </script>
 </body>
 </html>
