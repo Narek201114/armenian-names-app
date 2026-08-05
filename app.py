@@ -5,8 +5,7 @@ from google import genai
 
 app = Flask(__name__)
 
-# Կարգավորում ենք Gemini API-ն (օգտագործում է միջավայրի փոփոխականից կամ ուղղակի բանալին)
-# Խորհուրդ է տրվում GEMINI_API_KEY-ը գրանցել համակարգի environment variables-ում
+# Կարգավորում ենք Gemini API-ն
 client = genai.Client()
 
 def load_names():
@@ -15,11 +14,6 @@ def load_names():
         with open(json_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     return {}
-
-def save_names(data):
-    json_path = os.path.join(os.path.dirname(__file__), 'names.json')
-    with open(json_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
 
 NAMES_DATABASE = load_names()
 
@@ -52,7 +46,7 @@ def index():
                             })
                             found = True
             
-            # 2. Եթե բազայում չկա, դիմում ենք Gemini AI-ին
+            # 2. Եթե բազայում չկա, հարցնում ենք Gemini AI-ին անմիջապես ցուցադրելու համար
             if not found:
                 try:
                     prompt = f"Տուր հայկական «{search_query}» անվան նշանակությունը և սեռը (արական թե իգական)։ Պատասխանը տուր խիստ JSON ձևաչափով հետևյալ կառուցվածքով՝ {{\"name\": \"{search_query}\", \"meaning\": \"նշանակությունը այստեղ\", \"gender\": \"male կամ female\"}}"
@@ -62,7 +56,6 @@ def index():
                         contents=prompt,
                     )
                     
-                    # Մաքրում ենք պատասխանը JSON-ի համար
                     text_res = response.text.strip()
                     if text_res.startswith("```json"):
                         text_res = text_res[7:-3].strip()
@@ -73,23 +66,7 @@ def index():
                     ai_name = ai_data.get("name", search_query)
                     ai_meaning = ai_data.get("meaning", "Բացատրություն չկա")
                     ai_gender = ai_data.get("gender", "male")
-                    
-                    # Որոշում ենք առաջին տառը՝ բազայում ավելացնելու համար
                     first_letter = ai_name[0].upper()
-                    if first_letter == 'Ա': # պարզեցված ուղղորդում տառերի
-                        pass # կամ համապատասխանեցում հայերեն տառերին
-                        
-                    # Ավելացնում ենք հիշողության և ֆայլի մեջ
-                    if first_letter not in NAMES_DATABASE:
-                        NAMES_DATABASE[first_letter] = {"male": [], "female": []}
-                    if ai_gender not in NAMES_DATABASE[first_letter]:
-                        NAMES_DATABASE[first_letter][ai_gender] = []
-                        
-                    # Ստուգում ենք՝ արդյոք արդեն կա ջնջելու/կրկնելու խուսափելու համար
-                    existing_names = [n["name"].lower() for n in NAMES_DATABASE[first_letter][ai_gender]]
-                    if ai_name.lower() not in existing_names:
-                        NAMES_DATABASE[first_letter][ai_gender].append({"name": ai_name, "meaning": ai_meaning})
-                        save_names(NAMES_DATABASE)
                     
                     search_results.append({
                         "name": ai_name,
@@ -98,8 +75,7 @@ def index():
                         "letter": first_letter
                     })
                 except Exception as e:
-                    # Եթե ԱԲ-ի հարցման ժամանակ խնդիր լինի
-                    pass
+                    print(f"AI Error: {e}") # Կարող եք տեսնել սխալը Logs-ում
         else:
             selected_letter = request.form.get("letter", "Ա")
             if selected_letter in NAMES_DATABASE:
